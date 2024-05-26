@@ -38,6 +38,7 @@ describe("Creating issues", () => {
   it("Should create an issue & assert that issue is visible on the board", () => {
     let description = "My bug description";
     let title = "Bug";
+    let assigneePresent = true;
     createNewIssue(
       description,
       title,
@@ -50,21 +51,24 @@ describe("Creating issues", () => {
     verifyNewIssueOnBacklog(
       title,
       issueIconBug,
-      avatarLordGaben,
       priorityIconHighest,
-      priorityColorHighest
+      priorityColorHighest,
+      assigneePresent,
+      avatarLordGaben
     );
   });
 
   it("Should create an issue with random data & assert that issue is visible on the board", () => {
     let description = faker.lorem.words(5);
     let title = faker.lorem.words(1);
+    let assigneePresent = false;
     createTaskNoAssignee(description, title, priorityLow, reporterNameBabyYoda);
-    verifyNewIssueOnBacklogNoAssignee(
+    verifyNewIssueOnBacklog(
       title,
       issueIconTask,
       priorityIconLow,
-      priorityColorLow
+      priorityColorLow,
+      assigneePresent
     );
   });
 });
@@ -118,9 +122,10 @@ function createTaskNoAssignee(
 function verifyNewIssueOnBacklog(
   prevIssueTitle,
   prevIssueTypeIcon,
-  prevAssigneeAvatar,
   prevPriorityIcon,
-  priorityLevelColor
+  priorityLevelColor,
+  assigneePresent,
+  prevAssigneeAvatar
 ) {
   cy.get(createIssueModal).should("not.exist");
   cy.contains("Issue has been successfully created.").should("be.visible");
@@ -138,40 +143,15 @@ function verifyNewIssueOnBacklog(
         .siblings()
         .within(() => {
           cy.get(prevIssueTypeIcon).should("be.visible");
-          cy.get(prevAssigneeAvatar).should("be.visible");
-          cy.get(prevPriorityIcon)
-            .should("be.visible")
-            .and("have.css", "color", priorityLevelColor);
-        });
-    });
-}
 
-function verifyNewIssueOnBacklogNoAssignee(
-  prevIssueTitle,
-  prevIssueTypeIcon,
-  prevPriorityIcon,
-  priorityLevelColor
-) {
-  cy.get(createIssueModal).should("not.exist");
-  cy.contains("Issue has been successfully created.").should("be.visible");
-  cy.reload();
-  cy.contains("Issue has been successfully created.").should("not.exist");
-  cy.get(backlog)
-    .should("be.visible")
-    .and("have.length", "1")
-    .within(() => {
-      cy.get(listIssue)
-        .should("have.length", "5")
-        .first()
-        .find("p")
-        .contains(prevIssueTitle)
-        .siblings()
-        .within(() => {
-          cy.get(prevIssueTypeIcon).should("be.visible");
-          cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
           cy.get(prevPriorityIcon)
             .should("be.visible")
             .and("have.css", "color", priorityLevelColor);
+          if (assigneePresent) {
+            cy.get(prevAssigneeAvatar).should("be.visible");
+          } else {
+            cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
+          }
         });
     });
 }
