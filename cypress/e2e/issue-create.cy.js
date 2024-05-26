@@ -24,6 +24,7 @@ const priorityIconHighest = '[data-testid="icon:arrow-up"]';
 const priorityColorHighest = "rgb(205, 19, 23)";
 const priorityIconLow = '[data-testid="icon:arrow-down"]';
 const priorityColorLow = "rgb(45, 135, 56)";
+const selectAssignee = '[data-testid="select:userIds"]';
 
 describe("Creating issues", () => {
   beforeEach(() => {
@@ -38,16 +39,21 @@ describe("Creating issues", () => {
   it("Should create an issue & assert that issue is visible on the board", () => {
     let description = "My bug description";
     let title = "Bug";
+    let issueTypeNotTask = true;
     let assigneePresent = true;
+
     createNewIssue(
       description,
       title,
-      issueTypeBug,
-      issueIconBug,
       priorityHighest,
       reporterNamePickleRick,
-      assigneeNameLordGaben
+      assigneePresent,
+      assigneeNameLordGaben,
+      issueTypeNotTask,
+      issueTypeBug,
+      issueIconBug
     );
+
     verifyNewIssueOnBacklog(
       title,
       issueIconBug,
@@ -61,8 +67,18 @@ describe("Creating issues", () => {
   it("Should create an issue with random data & assert that issue is visible on the board", () => {
     let description = faker.lorem.words(5);
     let title = faker.lorem.words(1);
+    let issueTypeNotTask = false;
     let assigneePresent = false;
-    createTaskNoAssignee(description, title, priorityLow, reporterNameBabyYoda);
+
+    createNewIssue(
+      description,
+      title,
+      priorityLow,
+      reporterNameBabyYoda,
+      assigneePresent,
+      issueTypeNotTask
+    );
+
     verifyNewIssueOnBacklog(
       title,
       issueIconTask,
@@ -76,45 +92,37 @@ describe("Creating issues", () => {
 function createNewIssue(
   myDescription,
   myTitle,
-  myIssueType,
-  myIssueIcon,
   myPriority,
   myReporter,
-  myAssignee
+  assigneePresent,
+  myAssignee,
+  issueTypeNotTask,
+  myIssueType,
+  myIssueIcon
 ) {
   cy.get(createIssueModal).within(() => {
     cy.get(descriptionInput)
       .type(myDescription)
       .should("have.text", myDescription);
     cy.get(titleInput).type(myTitle).should("have.value", myTitle);
-    cy.get(issueType).click();
-    cy.get(myIssueType).wait(1000).trigger("mouseover").trigger("click");
-    cy.get(myIssueIcon).should("be.visible");
     cy.get(priority).click();
     cy.get(myPriority).wait(1000).trigger("mouseover").trigger("click");
     cy.get(reporter).click();
     cy.get(myReporter).click();
-    cy.get(assignee).click();
-    cy.get(myAssignee).click();
-    cy.get(submitButton).click();
-  });
-}
-
-function createTaskNoAssignee(
-  myDescription,
-  myTitle,
-  myPriorityLevel,
-  myReporterName
-) {
-  cy.get(createIssueModal).within(() => {
-    cy.get(descriptionInput).type(myDescription);
-    cy.get(titleInput).type(myTitle);
-    cy.get(issueType).first().find("i").siblings().contains("Task");
-    cy.get(issueIconTask).scrollIntoView().should("be.visible");
-    cy.get(priority).click();
-    cy.get(myPriorityLevel).wait(1000).trigger("mouseover").trigger("click");
-    cy.get(reporter).click();
-    cy.get(myReporterName).click();
+    if (assigneePresent) {
+      cy.get(assignee).click();
+      cy.get(myAssignee).click();
+    } else {
+      cy.get(selectAssignee).should("have.text", "Select");
+    }
+    if (issueTypeNotTask) {
+      cy.get(issueType).click();
+      cy.get(myIssueType).wait(1000).trigger("mouseover").trigger("click");
+      cy.get(myIssueIcon).should("be.visible");
+    } else {
+      cy.get(issueType).first().find("i").siblings().contains("Task");
+      cy.get(issueIconTask).scrollIntoView().should("be.visible");
+    }
     cy.get(submitButton).click();
   });
 }
@@ -143,7 +151,6 @@ function verifyNewIssueOnBacklog(
         .siblings()
         .within(() => {
           cy.get(prevIssueTypeIcon).should("be.visible");
-
           cy.get(prevPriorityIcon)
             .should("be.visible")
             .and("have.css", "color", priorityLevelColor);
