@@ -1,5 +1,3 @@
-import { faker } from "@faker-js/faker";
-
 let issueTitle = "This is an issue of type: Task.";
 const deleteButton = '[data-testid="icon:trash"]';
 const deleteButtonText = "Delete issue";
