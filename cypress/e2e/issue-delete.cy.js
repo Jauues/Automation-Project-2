@@ -13,7 +13,7 @@ describe("Issue deletion", () => {
       .should("eq", `${Cypress.env("baseUrl")}project`)
       .then((url) => {
         cy.visit(url + "/board");
-        getFirstListIssue().should("be.visible").click();
+        getFirstListIssue();
       });
   });
 
@@ -30,7 +30,7 @@ describe("Issue deletion cancellation", () => {
       .should("eq", `${Cypress.env("baseUrl")}project`)
       .then((url) => {
         cy.visit(url + "/board");
-        getFirstListIssue().click();
+        getFirstListIssue();
       });
   });
 
@@ -44,7 +44,7 @@ const getIssueDetailsModal = () =>
   cy.get('[data-testid="modal:issue-details"]');
 const getConfirmationModal = () => cy.get('[data-testid="modal:confirm"]');
 const getFirstListIssue = () =>
-  cy.get(backlog).children(0).contains(issueTitle).should("be.visible");
+  cy.get(backlog).children(0).contains(issueTitle).should("be.visible").click();
 
 function deletesIssue() {
   getIssueDetailsModal().within(() => {
