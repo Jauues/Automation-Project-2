@@ -12,8 +12,8 @@ describe('Issue comments creating, editing and deleting', () => {
         });
     });
 
-    let comment = faker.lorem.words(5);
-    let editedComment = faker.lorem.words(3)
+    const comment = faker.lorem.words(5);
+    const editedComment = faker.lorem.words(3)
 
     it('Should create, edit & delete a new comment', () => {
    
