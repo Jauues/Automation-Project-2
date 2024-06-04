@@ -5,6 +5,8 @@ const cancelButtonText = "Cancel";
 const backlog = '[data-testid="board-list:backlog"]';
 const listIssue = '[data-testid="list-issue"]';
 const closeButtonForDetailsModal = '[data-testid="icon:close"]';
+const issueDetailsModal = '[data-testid="modal:issue-details"]';
+const confirmationModal = '[data-testid="modal:confirm"]';
 
 describe("Issue deletion", () => {
   beforeEach(() => {
@@ -41,8 +43,8 @@ describe("Issue deletion cancellation", () => {
 });
 
 const getIssueDetailsModal = () =>
-  cy.get('[data-testid="modal:issue-details"]');
-const getConfirmationModal = () => cy.get('[data-testid="modal:confirm"]');
+  cy.get(issueDetailsModal);
+const getConfirmationModal = () => cy.get(confirmationModal);
 const getFirstListIssue = () =>
   cy.get(backlog).children(0).contains(issueTitle).should("be.visible").click();
 
