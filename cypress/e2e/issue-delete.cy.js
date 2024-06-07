@@ -1,4 +1,4 @@
-let issueTitle = "This is an issue of type: Task.";
+const issueTitle = "This is an issue of type: Task.";
 const deleteButton = '[data-testid="icon:trash"]';
 const deleteButtonText = "Delete issue";
 const cancelButtonText = "Cancel";

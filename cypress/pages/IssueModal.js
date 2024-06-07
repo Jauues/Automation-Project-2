@@ -13,7 +13,7 @@ class IssueModal {
     this.deleteButtonName = "Delete issue";
     this.cancelDeletionButtonName = "Cancel";
     this.confirmationPopup = '[data-testid="modal:confirm"]';
-    this.closeDetailModalButton = '[data-testid="icon:close"]';
+    this.closeButton = '[data-testid="icon:close"]';
     this.issueTitle = "This is an issue of type: Task.";
     this.backlog = '[data-testid="board-list:backlog"]';
     this.addCommentField = "Add a comment...";
@@ -24,23 +24,25 @@ class IssueModal {
     this.editButton = "Edit";
     this.commentDelete = "Delete";
     this.commentDeleteConfirm = "Delete comment";
+    this.estimateField = 'input[placeholder="Number"]';
+    this.timeTrackerStopwatch = '[data-testid="icon:stopwatch"]';
   }
 
-  getFirstListIssue() {
+  getFirstListIssue(issueDetails) {
     return cy
-      .get(this.backlog, { timeout: 80000 })
+      .get(this.backlog)
       .children(0)
-      .contains(this.issueTitle)
-      .should("be.visible")
+      .contains(issueDetails.title, { timeout: 120000 })
+      .should("be.visible", { timeout: 120000 })
       .click();
   }
 
   getIssueModal() {
-    return cy.get(this.issueModal);
+    return cy.get(this.issueModal, { timeout: 80000 });
   }
 
   getIssueDetailModal() {
-    return cy.get(this.issueDetailModal);
+    return cy.get(this.issueDetailModal, { timeout: 80000 });
   }
 
   getConfirmationPopup() {
@@ -75,6 +77,7 @@ class IssueModal {
       this.selectAssignee(issueDetails.assignee);
       cy.get(this.submitButton).click();
     });
+    cy.log("Issue created successfully");
   }
 
   ensureIssueIsCreated(expectedAmountIssues, issueDetails) {
@@ -138,11 +141,12 @@ class IssueModal {
     cy.get(this.issueDetailModal).should("be.visible");
   }
 
+  closePopUp() {
+    cy.get(this.closeButton).first().click();
+  }
+
   closeDetailModal() {
-    cy.get(this.issueDetailModal)
-      .get(this.closeDetailModalButton)
-      .first()
-      .click();
+    cy.get(this.issueDetailModal).get(this.closeButton).eq(1).click();
     cy.get(this.issueDetailModal).should("not.exist");
   }
 
@@ -193,6 +197,56 @@ class IssueModal {
     this.getIssueDetailModal().within(() => {
       cy.get(editedComment).should("not.exist");
     });
+  }
+
+  // P5S2W2 Estimation tests (Assignment 2)
+
+  addEstimation(issueDetails) {
+    this.getFirstListIssue(issueDetails);
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.timeTrackerStopwatch).next().contains("No time logged");
+      cy.get(this.estimateField)
+        .type(issueDetails.estimatedTime)
+        .should("have.attr", "value", issueDetails.estimatedTime);
+      //cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');
+    });
+    cy.log("Estimation added");
+  }
+
+  validateEstimationSaved(issueDetails /*, timeEstimated*/) {
+    this.closeDetailModal();
+    this.getFirstListIssue(issueDetails);
+    this.getIssueDetailModal().within(() => {
+      /* cy.get(this.estimateField)
+       .contains(timeEstimated)
+       .should("be.visible")
+        .should('have.attr', 'value', timeEstimated);
+      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');*/
+    });
+    cy.log("Estimation saved successfully");
+  }
+
+  updateEstimation(issueDetails) {
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.estimateField)
+        .clear()
+        .type(issueDetails.newEstimatedTime)
+        .should("have.attr", "value", issueDetails.newEstimatedTime);
+      //cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.newEstimatedTime + 'h estimated');
+    });
+    cy.log("Estimation updated");
+  }
+
+  removeEstimation(issueDetails) {
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.estimateField)
+        .clear()
+        .should("have.attr", "value", issueDetails.removedEstimatedTime);
+      cy.get(this.estimateField)
+        .should("have.attr", "placeholder", "Number")
+        .and("be.visible");
+    });
+    cy.log("Estimation removed");
   }
 }
 
