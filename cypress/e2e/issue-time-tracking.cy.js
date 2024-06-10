@@ -4,10 +4,10 @@ import { faker } from "@faker-js/faker";
 describe("Time estimation functionality", () => {
   beforeEach(() => {
     cy.visit("/");
-    cy.url()
+    cy.url({ timeout: 120000 })
       .should("eq", `${Cypress.env("baseUrl")}project/board`)
       .then((url) => {
-        cy.visit(url + "/board?modal-issue-create=true");
+        cy.visit(url);
       });
   });
 
@@ -22,28 +22,17 @@ describe("Time estimation functionality", () => {
   };
 
   it("Should add, edit & remove time estimation successfully", () => {
-    IssueModal.createIssue(issueDetails);
     IssueModal.addEstimation(issueDetails);
     IssueModal.validateEstimationSaved(
-      issueDetails /*, issueDetails.estimatedTime*/
+      issueDetails,
+      issueDetails.estimatedTime
     );
     IssueModal.updateEstimation(issueDetails);
     IssueModal.validateEstimationSaved(
-      issueDetails /*, issueDetails.newEstimatedTime*/
+      issueDetails,
+      issueDetails.newEstimatedTime
     );
     IssueModal.removeEstimation(issueDetails);
-    IssueModal.validateEstimationSaved(
-      issueDetails /*, issueDetails.removedEstimatedTime*/
-    );
+    IssueModal.validateEstimationRemoved(issueDetails);
   });
 });
-
-/*
-
-
-    it('Should log spent time & remove it successfully', () => {
-        IssueModal.logTime();
-        IssueModal.removeLoggedTime();
-        
-    });
-*/

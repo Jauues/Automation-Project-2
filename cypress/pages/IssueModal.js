@@ -15,7 +15,6 @@ class IssueModal {
     this.confirmationPopup = '[data-testid="modal:confirm"]';
     this.closeButton = '[data-testid="icon:close"]';
     this.issueTitle = "This is an issue of type: Task.";
-    this.backlog = '[data-testid="board-list:backlog"]';
     this.addCommentField = "Add a comment...";
     this.commentTextarea = 'textarea[placeholder="Add a comment..."]';
     this.saveButton = "Save";
@@ -26,13 +25,14 @@ class IssueModal {
     this.commentDeleteConfirm = "Delete comment";
     this.estimateField = 'input[placeholder="Number"]';
     this.timeTrackerStopwatch = '[data-testid="icon:stopwatch"]';
+    this.placeholderEstimatedTime = "Number";
+    
   }
 
-  getFirstListIssue(issueDetails) {
+  getFirstListIssue() {
     return cy
-      .get(this.backlog)
-      .children(0)
-      .contains(issueDetails.title, { timeout: 120000 })
+      .get(this.issuesList, { timeout: 120000 })
+      .eq(0)
       .should("be.visible", { timeout: 120000 })
       .click();
   }
@@ -146,7 +146,7 @@ class IssueModal {
   }
 
   closeDetailModal() {
-    cy.get(this.issueDetailModal).get(this.closeButton).eq(1).click();
+    cy.get(this.issueDetailModal).get(this.closeButton).eq(0).click();
     cy.get(this.issueDetailModal).should("not.exist");
   }
 
@@ -202,26 +202,38 @@ class IssueModal {
   // P5S2W2 Estimation tests (Assignment 2)
 
   addEstimation(issueDetails) {
-    this.getFirstListIssue(issueDetails);
+    this.getFirstListIssue();
     this.getIssueDetailModal().within(() => {
-      cy.get(this.timeTrackerStopwatch).next().contains("No time logged");
+      cy.get(this.estimateField)
+        .clear()
       cy.get(this.estimateField)
         .type(issueDetails.estimatedTime)
         .should("have.attr", "value", issueDetails.estimatedTime);
-      //cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');
+      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');
     });
     cy.log("Estimation added");
   }
 
-  validateEstimationSaved(issueDetails /*, timeEstimated*/) {
+  validateEstimationSaved(issueDetails, timeEstimated) {
     this.closeDetailModal();
     this.getFirstListIssue(issueDetails);
     this.getIssueDetailModal().within(() => {
-      /* cy.get(this.estimateField)
-       .contains(timeEstimated)
+      cy.get(this.estimateField)
        .should("be.visible")
         .should('have.attr', 'value', timeEstimated);
-      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');*/
+      cy.get(this.timeTrackerStopwatch).next().contains(timeEstimated + 'h estimated');
+    });
+    cy.log("Estimation saved successfully");
+  }
+
+  validateEstimationRemoved(issueDetails) {
+    this.closeDetailModal();
+    this.getFirstListIssue(issueDetails);
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.estimateField)
+       .should("be.visible")
+        .should('have.attr', 'value', issueDetails.removedEstimatedTime)
+        .should("have.attr", "placeholder", this.placeholderEstimatedTime);
     });
     cy.log("Estimation saved successfully");
   }
@@ -232,7 +244,7 @@ class IssueModal {
         .clear()
         .type(issueDetails.newEstimatedTime)
         .should("have.attr", "value", issueDetails.newEstimatedTime);
-      //cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.newEstimatedTime + 'h estimated');
+      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.newEstimatedTime + 'h estimated');
     });
     cy.log("Estimation updated");
   }
@@ -241,10 +253,10 @@ class IssueModal {
     this.getIssueDetailModal().within(() => {
       cy.get(this.estimateField)
         .clear()
-        .should("have.attr", "value", issueDetails.removedEstimatedTime);
-      cy.get(this.estimateField)
-        .should("have.attr", "placeholder", "Number")
+        .should("have.attr", "value", issueDetails.removedEstimatedTime)
+        .should("have.attr", "placeholder", this.placeholderEstimatedTime)
         .and("be.visible");
+      cy.get(this.timeTrackerStopwatch).next().should('not.contain', issueDetails.newEstimatedTime);
     });
     cy.log("Estimation removed");
   }
