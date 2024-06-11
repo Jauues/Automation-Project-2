@@ -1,24 +1,23 @@
 import IssueModal from "../pages/IssueModal.js";
 import { faker } from "@faker-js/faker";
 
-describe("Time estimation functionality", () => {
+describe("Time estimation & tracking functionalities", () => {
   beforeEach(() => {
     cy.visit("/");
     cy.url({ timeout: 120000 })
       .should("eq", `${Cypress.env("baseUrl")}project/board`)
       .then((url) => {
         cy.visit(url);
+        IssueModal.getFirstListIssue();
       });
   });
 
   const issueDetails = {
-    type: "Bug",
-    description: faker.lorem.words(7),
-    title: faker.lorem.words(3),
-    assignee: "Pickle Rick",
     estimatedTime: "10",
     newEstimatedTime: "20",
     removedEstimatedTime: "",
+    timeSpent: "2",
+    timeRemaining: "5",
   };
 
   it("Should add, edit & remove time estimation successfully", () => {
@@ -34,5 +33,10 @@ describe("Time estimation functionality", () => {
     );
     IssueModal.removeEstimation(issueDetails);
     IssueModal.validateEstimationRemoved(issueDetails);
+  });
+
+  it("Should log & remove logged time successfully", () => {
+    IssueModal.deleteLoggedTime();
+    IssueModal.logTime(issueDetails);
   });
 });

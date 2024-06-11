@@ -12,6 +12,6 @@
     "@faker-js/faker": "^8.4.1"
   },
   "dependencies": {
-    "cypress": "^10.9.0"
+    "cypress": "^13.0.0"
   }
 }

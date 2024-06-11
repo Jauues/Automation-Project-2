@@ -23,10 +23,12 @@ class IssueModal {
     this.editButton = "Edit";
     this.commentDelete = "Delete";
     this.commentDeleteConfirm = "Delete comment";
-    this.estimateField = 'input[placeholder="Number"]';
+    this.numberField = 'input[placeholder="Number"]';
     this.timeTrackerStopwatch = '[data-testid="icon:stopwatch"]';
-    this.placeholderEstimatedTime = "Number";
-    
+    this.placeholderNumber = "Number";
+    this.trackingModal = '[data-testid="modal:tracking"]';
+    this.buttonDone = "Done";
+    this.noTimeLoggedLabel = "No time logged";
   }
 
   getFirstListIssue() {
@@ -35,6 +37,10 @@ class IssueModal {
       .eq(0)
       .should("be.visible", { timeout: 120000 })
       .click();
+  }
+
+  getTrackingModal() {
+    return cy.get(this.trackingModal, { timeout: 80000 });
   }
 
   getIssueModal() {
@@ -202,14 +208,15 @@ class IssueModal {
   // P5S2W2 Estimation tests (Assignment 2)
 
   addEstimation(issueDetails) {
-    this.getFirstListIssue();
+    this.deleteLoggedTime();
     this.getIssueDetailModal().within(() => {
-      cy.get(this.estimateField)
+      cy.get(this.numberField)
         .clear()
-      cy.get(this.estimateField)
         .type(issueDetails.estimatedTime)
         .should("have.attr", "value", issueDetails.estimatedTime);
-      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.estimatedTime + 'h estimated');
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .contains(issueDetails.estimatedTime + "h estimated");
     });
     cy.log("Estimation added");
   }
@@ -218,10 +225,12 @@ class IssueModal {
     this.closeDetailModal();
     this.getFirstListIssue(issueDetails);
     this.getIssueDetailModal().within(() => {
-      cy.get(this.estimateField)
-       .should("be.visible")
-        .should('have.attr', 'value', timeEstimated);
-      cy.get(this.timeTrackerStopwatch).next().contains(timeEstimated + 'h estimated');
+      cy.get(this.numberField)
+        .should("be.visible")
+        .should("have.attr", "value", timeEstimated);
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .contains(timeEstimated + "h estimated");
     });
     cy.log("Estimation saved successfully");
   }
@@ -230,35 +239,95 @@ class IssueModal {
     this.closeDetailModal();
     this.getFirstListIssue(issueDetails);
     this.getIssueDetailModal().within(() => {
-      cy.get(this.estimateField)
-       .should("be.visible")
-        .should('have.attr', 'value', issueDetails.removedEstimatedTime)
-        .should("have.attr", "placeholder", this.placeholderEstimatedTime);
+      cy.get(this.numberField)
+        .should("be.visible")
+        .should("have.attr", "value", issueDetails.removedEstimatedTime)
+        .should("have.attr", "placeholder", this.placeholderNumber);
     });
     cy.log("Estimation saved successfully");
   }
 
   updateEstimation(issueDetails) {
     this.getIssueDetailModal().within(() => {
-      cy.get(this.estimateField)
+      cy.get(this.numberField)
         .clear()
         .type(issueDetails.newEstimatedTime)
         .should("have.attr", "value", issueDetails.newEstimatedTime);
-      cy.get(this.timeTrackerStopwatch).next().contains(issueDetails.newEstimatedTime + 'h estimated');
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .contains(issueDetails.newEstimatedTime + "h estimated");
     });
     cy.log("Estimation updated");
   }
 
   removeEstimation(issueDetails) {
     this.getIssueDetailModal().within(() => {
-      cy.get(this.estimateField)
+      cy.get(this.numberField)
         .clear()
         .should("have.attr", "value", issueDetails.removedEstimatedTime)
-        .should("have.attr", "placeholder", this.placeholderEstimatedTime)
+        .should("have.attr", "placeholder", this.placeholderNumber)
         .and("be.visible");
-      cy.get(this.timeTrackerStopwatch).next().should('not.contain', issueDetails.newEstimatedTime);
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .should("not.contain", issueDetails.newEstimatedTime);
     });
     cy.log("Estimation removed");
+  }
+
+  // P5S2W2 Time tracking tests (Assignment 2)
+
+  deleteLoggedTime() {
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.timeTrackerStopwatch).click();
+    });
+    this.getTrackingModal().within(() => {
+      cy.get(this.numberField)
+        .eq(0)
+        .clear()
+        .should("have.attr", "value", "")
+        .should("have.attr", "placeholder", this.placeholderNumber);
+      cy.get(this.numberField)
+        .eq(1)
+        .clear()
+        .should("have.attr", "value", "")
+        .should("have.attr", "placeholder", this.placeholderNumber);
+      cy.get("button").contains(this.buttonDone).click();
+    });
+    cy.get(this.trackingModal).should("not.exist");
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .should("contain", this.noTimeLoggedLabel);
+    });
+    cy.log("Logged time deleted");
+  }
+
+  logTime(issueDetails) {
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.timeTrackerStopwatch).click();
+    });
+    this.getTrackingModal().within(() => {
+      cy.get(this.numberField)
+        .eq(0)
+        .type(issueDetails.timeSpent)
+        .should("have.attr", "value", issueDetails.timeSpent)
+        .should("be.visible");
+      cy.get(this.numberField)
+        .eq(1)
+        .type(issueDetails.timeRemaining)
+        .should("have.attr", "value", issueDetails.timeRemaining)
+        .should("be.visible");
+      cy.get("button").contains(this.buttonDone).click();
+    });
+    cy.get(this.trackingModal).should("not.exist");
+    this.getIssueDetailModal().within(() => {
+      cy.get(this.timeTrackerStopwatch)
+        .next()
+        .should("not.contain", this.noTimeLoggedLabel)
+        .should("contain", issueDetails.timeSpent + "h logged")
+        .and("contain", issueDetails.timeRemaining + "h remaining");
+    });
+    cy.log("Time logged");
   }
 }
 
