@@ -107,8 +107,9 @@ describe("Issue details editing", () => {
     });
   });
 
-  it("Should verify name of reorter has only charecters", () => {
+  it("Should verify name of reporter has only charecters", () => {
     const reporter = '[data-testid="select:reporter"]';
+
     getIssueDetailsModal().within(() => {
       cy.get(reporter)
         .invoke("text")

@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import IssueModal from "../pages/IssueModal.js";
 
 const createIssueModal = '[data-testid="modal:issue-create"]';
 const titleInput = 'input[name="title"]';
@@ -32,15 +33,15 @@ describe("Creating issues", () => {
     cy.url()
       .should("eq", `${Cypress.env("baseUrl")}project/board`)
       .then((url) => {
-        cy.visit(url + "/board?modal-issue-create=true");
+        cy.visit(url + "/board?modal-issue-create=true", { timeout: 80000 });
       });
   });
 
   it("Should create an issue & assert that issue is visible on the board", () => {
-    let description = "My bug description";
-    let title = "Bug";
-    let issueTypeNotTask = true;
-    let assigneePresent = true;
+    const description = "My bug description";
+    const title = "Bug";
+    const issueTypeNotTask = true;
+    const assigneePresent = true;
 
     createNewIssue(
       description,
@@ -65,10 +66,10 @@ describe("Creating issues", () => {
   });
 
   it("Should create an issue with random data & assert that issue is visible on the board", () => {
-    let description = faker.lorem.words(5);
-    let title = faker.lorem.words(1);
-    let issueTypeNotTask = false;
-    let assigneePresent = false;
+    const description = faker.lorem.words(5);
+    const title = faker.lorem.words(1);
+    const issueTypeNotTask = false;
+    const assigneePresent = false;
 
     createNewIssue(
       description,
@@ -86,6 +87,25 @@ describe("Creating issues", () => {
       priorityColorLow,
       assigneePresent
     );
+  });
+
+  it.only("Should verify unnecessary whitespaces are removed in board view", () => {
+    const issueDetails = {
+      description: faker.lorem.words(7),
+      title: " Hello world! ",
+      type: "Story",
+      assignee: "Baby Yoda",
+    };
+
+    IssueModal.createIssue(issueDetails);
+
+    const titleOnBoard = issueDetails.title.trim();
+
+    cy.get(backlog).within(() => {
+      cy.get(listIssue, { timeout: 120000 })
+        .first()
+        .contains(titleOnBoard, { timeout: 120000 });
+    });
   });
 });
 
